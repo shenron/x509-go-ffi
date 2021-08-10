@@ -1,5 +1,6 @@
 # x509-go-ffi
-Trouble when running with OSX
+~~Trouble when running with OSX~~
+Fixed with ./.cargo/config
 
 Linked issues:
 - https://github.com/golang/go/issues/47588
