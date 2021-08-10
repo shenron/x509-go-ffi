@@ -1,6 +1,10 @@
 # x509-go-ffi
 Trouble when running with OSX
 
+Linked issues:
+- https://github.com/golang/go/issues/47588
+- https://github.com/golang/go/issues/42459
+
 ## Setup Go and Rust environment
 
 ## Build
