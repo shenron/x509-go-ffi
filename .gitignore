@@ -1,3 +1,7 @@
 target
 *.a
 *.h
+
+!.cargo
+.cargo/*
+!.cargo/config
