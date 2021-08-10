@@ -2,6 +2,5 @@ target
 *.a
 *.h
 
-!.cargo
 .cargo/*
-!.cargo/config
+!.cargo/.gitkeep
