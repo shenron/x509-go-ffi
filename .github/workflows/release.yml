@@ -1,0 +1,127 @@
+name: "publish"
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build:
+    runs-on: '${{ matrix.os }}'
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            suffix: ''
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            suffix: ''
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Go FFI
+        run: make build
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: '${{ runner.os }}-cargo-registry-${{ hashFiles(''**/Cargo.lock'') }}'
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: '${{ runner.os }}-cargo-index-${{ hashFiles(''**/Cargo.lock'') }}'
+      - uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: build the release
+        uses: actions-rs/toolchain@v1
+        with:
+          command: build
+          args: '--release'
+
+      - name: upload the artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-${{ matrix.target }}
+          path: target/release
+
+
+  release:
+    # enable release only on master
+    # if: github.ref == 'refs/heads/master'
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+
+      - name: retrieve the version from Cargo.toml
+        id: get_version
+        run: echo ::set-output name=VERSION::$(awk -F ' = ' '$1 ~ /version/ { gsub(/["]/, "", $2); printf("%s",$2) }' Cargo.toml)
+        shell: bash
+
+      - name: retrieve the version from main package.json
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@master
+
+      - name: download linux build
+        uses: actions/download-artifact@v2
+        with:
+          name: app-x86_64-unknown-linux-gnu
+          path: target/release
+
+      - name: create output dir
+        run: mkdir _output
+
+      - name: rename files
+        run: mv target/release/rustaceanize "./_output/app_${VERSION}_x86_64-unknown-linux-gnu"
+        env:
+          VERSION: '${{ steps.get_version.outputs.VERSION }}'
+
+      - name: download osx build
+        uses: actions/download-artifact@v2
+        with:
+          name: app-x86_64-apple-darwin
+          path: target/release
+
+      - name: rename files
+        run: mv target/release/rustaceanize "./_output/app_${VERSION}_x86_64-apple-darwin"
+        env:
+          VERSION: '${{ steps.get_version.outputs.VERSION }}'
+
+      - name: print files
+        run: ls -R
+
+      - name: create a release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: 'app-v${{ steps.package-version.outputs.current-version }}'
+          name: 'App v${{ steps.package-version.outputs.current-version }}'
+          draft: false
+          prerelease: false
+          files: |
+            _output/**
+          token: '${{ secrets.GH_TOKEN }}'
+        env:
+          VERSION: '${{ steps.get_version.outputs.VERSION }}'
