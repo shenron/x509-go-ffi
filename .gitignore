@@ -1,6 +1,3 @@
 target
 *.a
 *.h
-
-.cargo/*
-!.cargo/.gitkeep

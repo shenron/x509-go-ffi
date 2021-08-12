@@ -1,0 +1,7 @@
+# instead of using
+# RUSTFLAGS="-Clink-arg=-framework -Clink-args=CoreFoundation -Clink-args=-framework -Clink-args=Security" cargo build --release --verbose
+# It s possible to use this configuration file
+#
+#
+# [build]
+# rustflags = ["-C", "link-args=-framework CoreFoundation -framework Security"]
