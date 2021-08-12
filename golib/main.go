@@ -4,8 +4,8 @@ import (
 	"C"
 	"crypto/x509"
 	"fmt"
+	"time"
 )
-import "time"
 
 //export PrintCerts
 func PrintCerts() bool {
