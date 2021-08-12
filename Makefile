@@ -9,8 +9,6 @@ ifeq ($(UNAME_S),Darwin)
 	RUSTFLAGS += -Clink-arg=-framework -Clink-args=CoreFoundation -Clink-args=-framework -Clink-args=Security
 endif
 
-rsutflags:
-	@echo ${RUSTFLAGS}
 buildgo:
 	cd golib && go build -buildmode=c-archive -o libgophernize.a main.go
 build:

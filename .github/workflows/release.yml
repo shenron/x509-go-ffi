@@ -52,18 +52,21 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: get rustflags
-        id: get_rustflags
-        run: echo ::set-output name=rustflags::$(make rustflags)
-        shell: bash
+      - name: build the linux release
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: '--release'
 
-      - name: build the release
+      - name: build the osx release
+        if: matrix.os == 'macos-latest'
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: '--release'
         env:
-          RUSTFLAGS: '${{ steps.get_rustflags.outputs.rustflags }}'
+          RUSTFLAGS: "-Clink-arg=-framework -Clink-args=CoreFoundation -Clink-args=-framework -Clink-args=Security"
 
       - name: upload the artifacts
         uses: actions/upload-artifact@v2
