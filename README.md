@@ -9,7 +9,7 @@ Linked issues:
 ## Setup Go and Rust environment
 
 ## Build
-> mkdir build
+> make
 
 ## Run
 > ./target/release/rustaceanize 
